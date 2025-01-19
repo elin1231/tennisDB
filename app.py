@@ -95,17 +95,19 @@ st.title("Tennis Player Elo Ratings Over Time")
 
 # Player selection
 player_ids = list(set(df['winner_id']).union(set(df['loser_id'])))
-player1 = st.selectbox("Select Player 1 ID:", player_ids, key="player1")
-player2 = st.selectbox("Select Player 2 ID:", player_ids, key="player2")
+player_name_to_id = {tuple(id_to_name_players.get(str(player_id))[1:3]): player_id for player_id in player_ids}
 
-# Elo timeseries visualization
+player1 = st.selectbox("Select Player 1 ID:", player_name_to_id.keys(), key="player1",format_func=lambda x: ' '.join(x))
+player2 = st.selectbox("Select Player 2 ID:", player_name_to_id.keys(), key="player2",format_func=lambda x: ' '.join(x))
+
+# Elo timeseries visualization with enhanced plots
 if player1 and player2:
     st.write("### Elo Ratings Time Series")
     
     for surface in ["overall", "hard", "clay", "grass"]:
         # Filter data for selected players
-        player1_data = elo_dataframes[surface][elo_dataframes[surface]['player_id'] == player1]
-        player2_data = elo_dataframes[surface][elo_dataframes[surface]['player_id'] == player2]
+        player1_data = elo_dataframes[surface][elo_dataframes[surface]['player_id'] == player_name_to_id[player1]]
+        player2_data = elo_dataframes[surface][elo_dataframes[surface]['player_id'] == player_name_to_id[player2]]
 
         # Sort by date
         player1_data = player1_data.sort_values(by="date") if not player1_data.empty else player1_data
@@ -115,19 +117,41 @@ if player1 and player2:
             st.write(f"No data available for {surface.capitalize()} Court Elo Ratings.")
             continue
 
-        # Plot time series
-        fig, ax = plt.subplots()
-        if not player1_data.empty:
-            ax.plot(player1_data['date'], player1_data['elo'], label=f"Player 1 (ID: {player1})", marker='o')
-        if not player2_data.empty:
-            ax.plot(player2_data['date'], player2_data['elo'], label=f"Player 2 (ID: {player2})", marker='o')
-        
-        # Customize plot
-        ax.set_title(f"{surface.capitalize()} Court Elo Ratings Over Time")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Elo Rating")
-        ax.legend()
-        ax.grid()
+        # Set up Matplotlib style
+        plt.style.use('Solarize_Light2')  # Use a built-in style for clean visuals
 
-        # Render plot in Streamlit
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(10, 6))
+        if not player1_data.empty:
+            ax.plot(
+                player1_data['date'],
+                player1_data['elo'],
+                label=f"{' '.join(player1)}",
+                marker='o',
+                markersize=6,
+                linewidth=2,
+                alpha=0.8,
+                color='blue'
+            )
+        if not player2_data.empty:
+            ax.plot(
+                player2_data['date'],
+                player2_data['elo'],
+                label=f"{' '.join(player2)}",
+                marker='s',
+                markersize=6,
+                linewidth=2,
+                alpha=0.8,
+                color='green'
+            )
+
+        # Customize the plot
+        ax.set_title(f"{surface.capitalize()} Court Elo Ratings Over Time", fontsize=16, weight='bold', color='darkblue')
+        ax.set_xlabel("Date", fontsize=12)
+        ax.set_ylabel("Elo Rating", fontsize=12)
+        ax.tick_params(axis='both', which='major', labelsize=10)
+        ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
+        ax.legend(fontsize=10, loc='best', frameon=True, fancybox=True)
+
+        # Render the plot in Streamlit
         st.pyplot(fig)
