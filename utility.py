@@ -26,6 +26,14 @@ def retrieve_betting_data(years) -> list:
 def load_player_data(data_dir):
     with open(os.path.join(data_dir, "atp_players.csv")) as pf:
         return OrderedDict((row[0], row) for row in csv.reader(pf))
+    
+def head_to_head_wins(df, player1_id, player2_id):
+    player1_wins = len(df[(df['winner_id'] == player1_id) & (df['loser_id'] == player2_id)])
+    player2_wins = len(df[(df['winner_id'] == player2_id) & (df['loser_id'] == player1_id)])
+    return {
+        "player1_wins": player1_wins,
+        "player2_wins": player2_wins
+    }
 
 def load_match_data(years, data_dir):
     dfs = []

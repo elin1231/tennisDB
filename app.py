@@ -1,6 +1,12 @@
 import streamlit as st
 import plotly.graph_objects as go
-from utility import load_player_data, load_match_data, calculate_elo, prepare_elo_dataframes
+from utility import (
+    load_player_data,
+    load_match_data,
+    calculate_elo,
+    prepare_elo_dataframes,
+    head_to_head_wins
+)
 
 DATA_DIR = "atp_data"
 YEARS = range(2020, 2024)
@@ -49,30 +55,35 @@ def get_player_stats(player_id):
     }
 
 if player1 and player2:
-    player1_stats = get_player_stats(player_name_to_id[player1])
-    player2_stats = get_player_stats(player_name_to_id[player2])
-    st.markdown("---")
+    player1_id = player_name_to_id[player1]
+    player2_id = player_name_to_id[player2]
+    player1_stats = get_player_stats(player1_id)
+    player2_stats = get_player_stats(player2_id)
+    h2h = head_to_head_wins(df, player1_id, player2_id)
 
+    st.markdown("---")
     st.write("### Player Statistics")
     col1, col2 = st.columns(2)
     
     with col1:
         st.subheader(' '.join(player1))
+        st.write(f"**Wins vs {' '.join(player2)}:** {h2h['player1_wins']}")
         for key, value in player1_stats.items():
             st.write(f"**{key}:** {value}")
-    
+
     with col2:
         st.subheader(' '.join(player2))
+        st.write(f"**Wins vs {' '.join(player1)}:** {h2h['player2_wins']}")
         for key, value in player2_stats.items():
             st.write(f"**{key}:** {value}")
+        
 
     st.markdown("---")
-
     st.write("### Elo Ratings Time Series")
 
     for surface, data in elo_dataframes.items():
-        player1_data = data[data['player_id'] == player_name_to_id[player1]].sort_values(by="date")
-        player2_data = data[data['player_id'] == player_name_to_id[player2]].sort_values(by="date")
+        player1_data = data[data['player_id'] == player1_id].sort_values(by="date")
+        player2_data = data[data['player_id'] == player2_id].sort_values(by="date")
 
         if player1_data.empty and player2_data.empty:
             st.write(f"No data available for {surface.capitalize()} Court Elo Ratings.")
