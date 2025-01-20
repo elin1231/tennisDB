@@ -10,7 +10,7 @@ from utility import (
 )
 
 DATA_DIR = "atp_data"
-YEARS = range(2020, 2024)
+YEARS = range(2018, 2024)
 
 id_to_name_players = load_player_data(DATA_DIR)
 df = load_match_data(YEARS, DATA_DIR)
