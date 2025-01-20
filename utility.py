@@ -278,6 +278,3 @@ def visualize_logistic_regression(model, X_test, y_test, results):
     plt.yticks([0, 1], ["Loss", "Win"])
     plt.tight_layout()
     plt.show()
-
-# Assuming `model`, `X_test`, `y_test`, and `results` are already generated
-# visualize_logistic_regression(model, X_test, y_test, results)
