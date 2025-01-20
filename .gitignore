@@ -90,7 +90,7 @@ build/
 
 # Anaconda environments
 *.conda
-*.ipynb
+# *.ipynb
 
 # Temporary files
 *.tmp
