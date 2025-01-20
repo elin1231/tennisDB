@@ -5,7 +5,8 @@ from utility import (
     load_match_data,
     calculate_elo,
     prepare_elo_dataframes,
-    head_to_head_wins
+    head_to_head_wins,
+    calculate_serve_metrics
 )
 
 DATA_DIR = "atp_data"
@@ -59,10 +60,12 @@ if player1 and player2:
     player2_id = player_name_to_id[player2]
     player1_stats = get_player_stats(player1_id)
     player2_stats = get_player_stats(player2_id)
+    player1_metrics = calculate_serve_metrics(df,player1_id)
+    player2_metrics = calculate_serve_metrics(df,player2_id)
     h2h = head_to_head_wins(df, player1_id, player2_id)
 
     st.markdown("---")
-    st.write("### Player Statistics")
+    st.write("### Player Statistics and Serve Metrics")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -70,13 +73,16 @@ if player1 and player2:
         st.write(f"**Wins vs {' '.join(player2)}:** {h2h['player1_wins']}")
         for key, value in player1_stats.items():
             st.write(f"**{key}:** {value}")
+        for key, value in player1_metrics.items():
+            st.write(f"**{key}:** {value}")
 
     with col2:
         st.subheader(' '.join(player2))
         st.write(f"**Wins vs {' '.join(player1)}:** {h2h['player2_wins']}")
         for key, value in player2_stats.items():
             st.write(f"**{key}:** {value}")
-        
+        for key, value in player2_metrics.items():
+            st.write(f"**{key}:** {value}")
 
     st.markdown("---")
     st.write("### Elo Ratings Time Series")
@@ -107,7 +113,8 @@ if player1 and player2:
                 name=f"End: {' '.join(player1)}",
                 marker=dict(size=10, symbol='circle'),
                 text=[f"{player1_data['elo'].iloc[-1]:.0f}"],
-                textposition="top center"
+                textposition="top center",
+                showlegend=False
             ))
 
         if not player2_data.empty:
@@ -126,7 +133,8 @@ if player1 and player2:
                 name=f"End: {' '.join(player2)}",
                 marker=dict(size=10, symbol='circle'),
                 text=[f"{player2_data['elo'].iloc[-1]:.0f}"],
-                textposition="top center"
+                textposition="top center",
+                showlegend=False
             ))
 
         fig.update_layout(
