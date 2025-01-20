@@ -1,1 +1,110 @@
 betting_data/*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environment variables
+.env
+.env.*
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+
+# Data files
+*.csv
+*.tsv
+*.dat
+*.data
+*.out
+*.log
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Configuration files
+*.yaml
+*.yml
+*.ini
+*.cfg
+
+# Secrets and credentials
+*.key
+*.pem
+*.pfx
+*.crt
+
+# Logs and reports
+*.log
+*.txt
+logs/
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# Machine learning models
+*.h5
+*.hdf5
+*.ckpt
+*.joblib
+*.pb
+*.onnx
+*.pkl
+*.sav
+*.pt
+
+# Results
+results/
+output/
+
+# Dataset archives
+*.zip
+*.tar
+*.gz
+*.tgz
+*.bz2
+
+# Python packages
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# IDE settings
+.idea/
+.vscode/
+*.code-workspace
+
+# Anaconda environments
+*.conda
+*.ipynb
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Streamlit cache
+.streamlit/
+
+# TensorBoard logs
+logs/
