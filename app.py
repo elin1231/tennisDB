@@ -36,7 +36,38 @@ player_name_to_id = {
 player1 = st.selectbox("Select Player 1:", player_name_to_id.keys(), format_func=lambda x: ' '.join(x))
 player2 = st.selectbox("Select Player 2:", player_name_to_id.keys(), format_func=lambda x: ' '.join(x))
 
+def get_player_stats(player_id):
+    matches_played = len(df[(df['winner_id'] == player_id) | (df['loser_id'] == player_id)])
+    wins = len(df[df['winner_id'] == player_id])
+    losses = matches_played - wins
+    win_percentage = (wins / matches_played) * 100 if matches_played > 0 else 0
+    return {
+        "Matches Played": matches_played,
+        "Wins": wins,
+        "Losses": losses,
+        "Win Percentage": f"{win_percentage:.2f}%"
+    }
+
 if player1 and player2:
+    player1_stats = get_player_stats(player_name_to_id[player1])
+    player2_stats = get_player_stats(player_name_to_id[player2])
+    st.markdown("---")
+
+    st.write("### Player Statistics")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader(' '.join(player1))
+        for key, value in player1_stats.items():
+            st.write(f"**{key}:** {value}")
+    
+    with col2:
+        st.subheader(' '.join(player2))
+        for key, value in player2_stats.items():
+            st.write(f"**{key}:** {value}")
+
+    st.markdown("---")
+
     st.write("### Elo Ratings Time Series")
 
     for surface, data in elo_dataframes.items():
