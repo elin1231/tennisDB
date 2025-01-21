@@ -44,7 +44,7 @@ env/
 
 # Logs and reports
 *.log
-*.txt
+# *.txt
 logs/
 
 # Images
