@@ -148,6 +148,58 @@ def load_data_for_years(years, base_dir="betting_data"):
     combined_data = pd.concat(all_data, ignore_index=True) if all_data else pd.DataFrame()
     return combined_data
 
+def calculate_betting_strategies(file_path, initial_cash=1000):
+    data = pd.ExcelFile(file_path)
+    df = data.parse(data.sheet_names[0]).sort_values(by='Date').reset_index(drop=True)
+
+    bet_size = 10
+    cash_random, cash_higher_odds, cash_higher_rank = initial_cash, initial_cash, initial_cash
+
+    random_returns, higher_odds_returns, higher_rank_returns = [], [], []
+
+    np.random.seed(42)
+    for _, row in df.iterrows():
+        if cash_random > 0:
+            random_outcome = np.random.choice(['Winner', 'Loser'])
+            random_return = bet_size * (row['AvgW'] - 1) if random_outcome == 'Winner' else -bet_size
+            cash_random += random_return
+            if cash_random < 0:
+                cash_random = 0
+        else:
+            random_return = 0
+        random_returns.append(random_return)
+
+        if cash_higher_odds > 0:
+            higher_odds_bet = 'Winner' if row['AvgW'] > row['AvgL'] else 'Loser'
+            higher_odds_return = bet_size * (row['AvgW'] - 1) if higher_odds_bet == 'Winner' else -bet_size
+            cash_higher_odds += higher_odds_return
+            if cash_higher_odds < 0:
+                cash_higher_odds = 0
+        else:
+            higher_odds_return = 0
+        higher_odds_returns.append(higher_odds_return)
+
+        if cash_higher_rank > 0:
+            higher_rank_bet = (
+                'Winner' if (row['WRank'] < row['LRank']) or pd.isna(row['LRank']) else
+                'Loser' if (row['LRank'] < row['WRank']) or pd.isna(row['WRank']) else 'No Bet'
+            )
+            higher_rank_return = (
+                bet_size * (row['AvgW'] - 1) if higher_rank_bet == 'Winner' else
+                -bet_size if higher_rank_bet == 'Loser' else 0
+            )
+            cash_higher_rank += higher_rank_return
+            if cash_higher_rank < 0:
+                cash_higher_rank = 0
+        else:
+            higher_rank_return = 0
+        higher_rank_returns.append(higher_rank_return)
+
+    df['Cumulative_Random'] = pd.Series(random_returns).cumsum()
+    df['Cumulative_HigherOdds'] = pd.Series(higher_odds_returns).cumsum()
+    df['Cumulative_HigherRank'] = pd.Series(higher_rank_returns).cumsum()
+
+    return df[['Date', 'Cumulative_Random', 'Cumulative_HigherOdds', 'Cumulative_HigherRank']]
 def visualize_logistic_regression(model, X_test, y_test, results):
     plt.figure(figsize=(8, 6))
     plt.scatter(results['Actual'], results['Win_Probability'], alpha=0.6, c=results['Predicted'], cmap='coolwarm', edgecolor='k')
