@@ -15,3 +15,18 @@ This project leverages valuable data from the following sources:
 - **General Tennis Data**: [Jeff Sackmann's Tennis ATP Repository](https://github.com/JeffSackmann/tennis_atp)  
   Historical data on ATP players, matches, and rankings.
 
+## Setup Instructions
+
+1. **Clone the repository:**
+
+   ```sh
+   git clone https://github.com/elin/tennis-elo-ratings.git
+   cd tennis-elo-ratings
+
+2. **Install the required packages:**
+  ```sh
+  pip install -r requirements.txt
+
+3. **Run the Streamlit application:**
+  ```sh
+  streamlit run app.py
