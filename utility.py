@@ -200,6 +200,7 @@ def calculate_betting_strategies(file_path, initial_cash=1000):
     df['Cumulative_HigherRank'] = pd.Series(higher_rank_returns).cumsum()
 
     return df[['Date', 'Cumulative_Random', 'Cumulative_HigherOdds', 'Cumulative_HigherRank']]
+
 def visualize_logistic_regression(model, X_test, y_test, results):
     plt.figure(figsize=(8, 6))
     plt.scatter(results['Actual'], results['Win_Probability'], alpha=0.6, c=results['Predicted'], cmap='coolwarm', edgecolor='k')
@@ -210,3 +211,46 @@ def visualize_logistic_regression(model, X_test, y_test, results):
     plt.grid(linestyle="--")
     plt.tight_layout()
     plt.show()
+
+# compute features for model:
+# Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
+
+def compute_atp_points_diff(df):
+    df = df.copy()
+    df['Points_Diff'] = abs(df['WPts'] - df['LPts'])
+    return df
+
+def compute_favorite_and_underdog(df):
+    def get_favorite(row):
+        if row['B365W'] < row['B365L']:
+            return row['Winner']
+        else:
+            return row['Loser']
+
+    def get_underdog(row):
+        if row['B365W'] < row['B365L']:
+            return row['Loser']
+        else:
+            return row['Winner']
+
+    # Create columns for Favorite and Underdog
+    df['Favorite'] = df.apply(get_favorite, axis=1)
+    df['Underdog'] = df.apply(get_underdog, axis=1)
+    return df
+
+def compute_delta_Int(df):
+    def assign_interval(points):
+        if points <= 400:
+            return 0
+        elif points <= 800:
+            return 1
+        elif points <= 1200:
+            return 2
+        elif points <= 2000:
+            return 3
+        else:
+            return 4
+    df['FI'] = df['WPts'].apply(assign_interval)
+    df['UI'] = df['LPts'].apply(assign_interval)
+    df['DeltaInt'] = df['FI'] - df['UI']
+    return df

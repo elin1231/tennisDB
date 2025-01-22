@@ -41,8 +41,7 @@ def preprocess_data(data):
 
 def feature_engineering(data):
     features = [
-        'Rank_Diff', 'Pts_Diff', 'Win_Prob', 'Lose_Prob', 'Best of',
-        'Surface', 'Court'
+        'Rank_Diff',  'Win_Prob', 'Lose_Prob', 'Best of'
     ]
 
     if 'Date' in data.columns:
