@@ -24,9 +24,9 @@ This project leverages valuable data from the following sources:
    cd tennis-elo-ratings
 
 2. **Install the required packages:**
-  ```sh
-  pip install -r requirements.txt
+   ```sh
+   pip install -r requirements.txt
 
 3. **Run the Streamlit application:**
-  ```sh
-  streamlit run app.py
+   ```sh
+   streamlit run app.py
