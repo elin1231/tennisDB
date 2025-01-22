@@ -20,8 +20,8 @@ This project leverages valuable data from the following sources:
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/elin/tennis-elo-ratings.git
-   cd tennis-elo-ratings
+   git clone https://github.com/elin1231/tennisDB.git
+   cd tennisDB
 
 2. **Install the required packages:**
    ```sh
