@@ -18,12 +18,11 @@ This project leverages valuable data from the following sources:
 ## Setup Instructions
 
 1. **Clone the repository:**
-
    ```sh
-   git clone https://github.com/elin1231/tennisDB.git
+   git clone --recurse-submodules https://github.com/elin1231/tennisDB.git
    cd tennisDB
 
-2. **Install the required packages:**
+2. **Install required packages:**
    ```sh
    pip install -r requirements.txt
 
