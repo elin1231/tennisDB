@@ -51,7 +51,7 @@ logs/
 *.png
 *.jpg
 *.jpeg
-*.gif
+# *.gif
 *.svg
 
 # Machine learning models
