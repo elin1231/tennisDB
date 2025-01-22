@@ -212,6 +212,32 @@ def visualize_logistic_regression(model, X_test, y_test, results):
     plt.tight_layout()
     plt.show()
 
+# Function to add player_id tag to tennis-data.co.uk data
+def get_betting_data_player_names():
+    player_names = set()
+    for file in os.listdir("betting_data"):
+        if file.endswith(".xlsx"):
+            df = pd.read_excel(os.path.join("betting_data", file))
+            player_names.update(df['Winner'].unique())
+            player_names.update(df['Loser'].unique())
+    
+    print(f"Found {len(player_names)} player names in tennis-data.co.uk data")
+    return player_names
+
+# try to implement name matching with fuzzy search algo
+def match_abbreviated_name_with_atp_ids():
+    player_names = get_betting_data_player_names()
+    atp_data = pd.read_csv("atp_players.csv")
+    # Betting data has player names in the format of full_last_name + first_initial(s).
+    # Examples:
+    # - "De Minaur A." : "Alex de Minaur"
+    # - "Herbert P.H." : "Pierre-Hugues Herbert"
+    # - "Carballes Baena R." : "Roberto Carballés Baena"
+    
+
+
+
+
 # compute features for model:
 # Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
 
