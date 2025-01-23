@@ -253,14 +253,36 @@ def match_abbreviated_name_with_atp_ids():
             atp_first_name_initials = ''.join([name[0] for name in atp_row['name_first'].split('-')])
 
             if atp_first_name_initials.startswith(initials):
-                matched_names.append((player, best_match))
+                matched_names.append((player, best_match,atp_row['player_id']))
             else:
                 unmatched_names.append(player)
 
-    matched_df = pd.DataFrame(matched_names, columns=['betting_name', 'atp_full_name'])
+    matched_df = pd.DataFrame(matched_names, columns=['betting_name', 'atp_full_name', 'atp_player_id'])
     print(f"Matched {len(matched_df)} names")
     print(f"Unmatched {unmatched_names} names")
     return matched_df
+
+def generate_betting_data_with_ids(matched_df):
+    input_dir = 'betting_data'
+    output_dir = 'betting_data_id'
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    xlsx_files = [f for f in os.listdir(input_dir) if f.endswith('.xlsx')]
+
+    def add_atp_player_id(df, matched_df):
+        df = df.merge(matched_df[['betting_name', 'atp_player_id']], left_on='Winner', right_on='betting_name', how='left')
+        df = df.rename(columns={'atp_player_id': 'Winner_id'})
+        df = df.merge(matched_df[['betting_name', 'atp_player_id']], left_on='Loser', right_on='betting_name', how='left')
+        df = df.rename(columns={'atp_player_id': 'Loser_id'})
+        return df
+
+    for file in xlsx_files:
+        file_path = os.path.join(input_dir, file)
+        df = pd.read_excel(file_path)
+        df_with_id = add_atp_player_id(df, matched_df)
+        output_file_path = os.path.join(output_dir, file.replace('.xlsx', '.csv'))
+        df_with_id.to_csv(output_file_path, index=False)
 
 # compute features for model:
 # Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
