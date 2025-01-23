@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
+from rapidfuzz import process
 
 DEFAULT_ELO = 1500
 K_FACTOR = 32
@@ -224,19 +225,42 @@ def get_betting_data_player_names():
     print(f"Found {len(player_names)} player names in tennis-data.co.uk data")
     return player_names
 
-# try to implement name matching with fuzzy search algo
+# try to implement name matching + fuzzy search
 def match_abbreviated_name_with_atp_ids():
     player_names = get_betting_data_player_names()
-    atp_data = pd.read_csv("atp_players.csv")
+    atp_data = pd.read_csv("atp_data/atp_players.csv")
     # Betting data has player names in the format of full_last_name + first_initial(s).
     # Examples:
     # - "De Minaur A." : "Alex de Minaur"
     # - "Herbert P.H." : "Pierre-Hugues Herbert"
     # - "Carballes Baena R." : "Roberto Carballés Baena"
-    
+    atp_data['full_name'] = atp_data['name_first'] + ' ' + atp_data['name_last']
 
+    matched_names = []
+    unmatched_names = []
+    for player in player_names:
+        parts = player.split(' ')
+        last_name = ' '.join(parts[:-1])
+        initials = parts[-1].replace('.', '')
 
+        best_match, score, _ = process.extractOne(
+            query=last_name, 
+            choices=atp_data['full_name']
+        )
 
+        if best_match:
+            atp_row = atp_data[atp_data['full_name'] == best_match].iloc[0]
+            atp_first_name_initials = ''.join([name[0] for name in atp_row['name_first'].split('-')])
+
+            if atp_first_name_initials.startswith(initials):
+                matched_names.append((player, best_match))
+            else:
+                unmatched_names.append(player)
+
+    matched_df = pd.DataFrame(matched_names, columns=['betting_name', 'atp_full_name'])
+    print(f"Matched {len(matched_df)} names")
+    print(f"Unmatched {unmatched_names} names")
+    return matched_df
 
 # compute features for model:
 # Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
