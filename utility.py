@@ -253,11 +253,11 @@ def match_abbreviated_name_with_atp_ids():
             atp_first_name_initials = ''.join([name[0] for name in atp_row['name_first'].split('-')])
 
             if atp_first_name_initials.startswith(initials):
-                matched_names.append((player, best_match,atp_row['player_id']))
+                matched_names.append((player, atp_row['name_first'], atp_row['name_last'], atp_row['player_id']))
             else:
                 unmatched_names.append(player)
 
-    matched_df = pd.DataFrame(matched_names, columns=['betting_name', 'atp_full_name', 'atp_player_id'])
+    matched_df = pd.DataFrame(matched_names, columns=['betting_name', 'name_first', 'name_last','atp_player_id'])
     print(f"Matched {len(matched_df)} names")
     print(f"Unmatched {unmatched_names} names")
     return matched_df
