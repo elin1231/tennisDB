@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from collections import defaultdict
 from unidecode import unidecode
-
+import os
 
 def remove_accents_and_lower(s: str) -> str:
     if not isinstance(s, str):
@@ -66,12 +66,26 @@ def find_player_id_fast(betting_name: str, lookup_dict) -> int:
 
 def main():
     df_players = pd.read_csv("atp_data/atp_players.csv")
-    df_betting = pd.read_excel("betting_data/2023.xlsx")
-    lookup = build_lookup_dict(df_players)
-    df_betting["winner_id"] = df_betting["Winner"].apply(lambda x: find_player_id_fast(x, lookup))
-    df_betting["loser_id"] = df_betting["Loser"].apply(lambda x: find_player_id_fast(x, lookup))
-    df_betting.to_csv('betting_data_w_id/2023.csv', index=False)
+    betting_data_dir = "betting_data"
 
-
-if __name__ == "__main__":
-    main()
+    for file_name in os.listdir(betting_data_dir):
+        if file_name.endswith(".xlsx"):
+            file_path = os.path.join(betting_data_dir, file_name)
+            df_betting = pd.read_excel(file_path)
+            lookup = build_lookup_dict(df_players)
+            
+            df_betting["winner_id"] = df_betting["Winner"].apply(lambda x: find_player_id_fast(x, lookup))
+            df_betting["loser_id"] = df_betting["Loser"].apply(lambda x: find_player_id_fast(x, lookup))
+            
+            total_rows = len(df_betting)
+            matched_winners = df_betting["winner_id"].notnull().sum()
+            matched_losers = df_betting["loser_id"].notnull().sum()
+            total_matches = matched_winners + matched_losers
+            total_possible_matches = total_rows * 2  # Each row has a winner and a loser to match
+            match_percentage = (total_matches / total_possible_matches) * 100
+            
+            print(f"File: {file_name}")
+            print(f"Match percentage: {match_percentage:.2f}%")
+            
+            output_file_path = os.path.join("betting_data_w_id", file_name.replace(".xlsx", ".csv"))
+            df_betting.to_csv(output_file_path, index=False)
