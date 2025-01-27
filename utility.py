@@ -284,14 +284,6 @@ def generate_betting_data_with_ids(matched_df):
         output_file_path = os.path.join(output_dir, file.replace('.xlsx', '.csv'))
         df_with_id.to_csv(output_file_path, index=False)
 
-# compute features for model:
-# Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
-
-def compute_atp_points_diff(df):
-    df = df.copy()
-    df['Points_Diff'] = abs(df['WPts'] - df['LPts'])
-    return df
-
 def compute_favorite_and_underdog(df):
     def get_favorite(row):
         if row['B365W'] < row['B365L']:
@@ -310,6 +302,14 @@ def compute_favorite_and_underdog(df):
     df['Underdog'] = df.apply(get_underdog, axis=1)
     return df
 
+# compute features for model:
+# Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
+
+def compute_atp_points_diff(df):
+    df = df.copy()
+    df['Points_Diff'] = abs(df['WPts'] - df['LPts'])
+    return df
+
 def compute_delta_Int(df):
     def assign_interval(points):
         if points <= 400:
@@ -325,4 +325,15 @@ def compute_delta_Int(df):
     df['FI'] = df['WPts'].apply(assign_interval)
     df['UI'] = df['LPts'].apply(assign_interval)
     df['DeltaInt'] = df['FI'] - df['UI']
+    return df
+
+def compute_player_age(atp_players_df, df):
+    df = df.copy()
+    atp_players_df['dob'] = pd.to_datetime(atp_players_df['dob'])
+    atp_players_df['age'] = (pd.to_datetime('today') - atp_players_df['dob']).dt.days
+    atp_players_df = atp_players_df[['player_id', 'age']]
+    df = df.merge(atp_players_df, left_on='Winner_id', right_on='player_id', how='left')
+    df = df.rename(columns={'age': 'Winner_age'})
+    df = df.merge(atp_players_df, left_on='Loser_id', right_on='player_id', how='left')
+    df = df.rename(columns={'age': 'Loser_age'})
     return df
