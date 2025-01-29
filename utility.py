@@ -225,65 +225,6 @@ def get_betting_data_player_names():
     print(f"Found {len(player_names)} player names in tennis-data.co.uk data")
     return player_names
 
-# try to implement name matching + fuzzy search
-def match_abbreviated_name_with_atp_ids():
-    player_names = get_betting_data_player_names()
-    atp_data = pd.read_csv("atp_data/atp_players.csv")
-    # Betting data has player names in the format of full_last_name + first_initial(s).
-    # Examples:
-    # - "De Minaur A." : "Alex de Minaur"
-    # - "Herbert P.H." : "Pierre-Hugues Herbert"
-    # - "Carballes Baena R." : "Roberto Carballés Baena"
-    atp_data['full_name'] = atp_data['name_first'] + ' ' + atp_data['name_last']
-
-    matched_names = []
-    unmatched_names = []
-    for player in player_names:
-        parts = player.split(' ')
-        last_name = ' '.join(parts[:-1])
-        initials = parts[-1].replace('.', '')
-
-        best_match, score, _ = process.extractOne(
-            query=last_name, 
-            choices=atp_data['full_name']
-        )
-
-        if best_match:
-            atp_row = atp_data[atp_data['full_name'] == best_match].iloc[0]
-            atp_first_name_initials = ''.join([name[0] for name in atp_row['name_first'].split('-')])
-
-            if atp_first_name_initials.startswith(initials):
-                matched_names.append((player, atp_row['name_first'], atp_row['name_last'], atp_row['player_id']))
-            else:
-                unmatched_names.append(player)
-
-    matched_df = pd.DataFrame(matched_names, columns=['betting_name', 'name_first', 'name_last','atp_player_id'])
-    print(f"Matched {len(matched_df)} names")
-    print(f"Unmatched {unmatched_names} names")
-    return matched_df
-
-def generate_betting_data_with_ids(matched_df):
-    input_dir = 'betting_data'
-    output_dir = 'betting_data_id'
-
-    os.makedirs(output_dir, exist_ok=True)
-
-    xlsx_files = [f for f in os.listdir(input_dir) if f.endswith('.xlsx')]
-
-    def add_atp_player_id(df, matched_df):
-        df = df.merge(matched_df[['betting_name', 'atp_player_id']], left_on='Winner', right_on='betting_name', how='left')
-        df = df.rename(columns={'atp_player_id': 'Winner_id'})
-        df = df.merge(matched_df[['betting_name', 'atp_player_id']], left_on='Loser', right_on='betting_name', how='left')
-        df = df.rename(columns={'atp_player_id': 'Loser_id'})
-        return df
-
-    for file in xlsx_files:
-        file_path = os.path.join(input_dir, file)
-        df = pd.read_excel(file_path)
-        df_with_id = add_atp_player_id(df, matched_df)
-        output_file_path = os.path.join(output_dir, file.replace('.xlsx', '.csv'))
-        df_with_id.to_csv(output_file_path, index=False)
-
 def compute_favorite_and_underdog(df):
     def get_favorite(row):
         if row['B365W'] < row['B365L']:
@@ -332,8 +273,8 @@ def compute_player_age(atp_players_df, df):
     atp_players_df['dob'] = pd.to_datetime(atp_players_df['dob'])
     atp_players_df['age'] = (pd.to_datetime('today') - atp_players_df['dob']).dt.days
     atp_players_df = atp_players_df[['player_id', 'age']]
-    df = df.merge(atp_players_df, left_on='Winner_id', right_on='player_id', how='left')
+    df = df.merge(atp_players_df, left_on='winner_id', right_on='player_id', how='left')
     df = df.rename(columns={'age': 'Winner_age'})
-    df = df.merge(atp_players_df, left_on='Loser_id', right_on='player_id', how='left')
+    df = df.merge(atp_players_df, left_on='loser_id', right_on='player_id', how='left')
     df = df.rename(columns={'age': 'Loser_age'})
     return df
