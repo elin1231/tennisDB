@@ -242,39 +242,3 @@ def compute_favorite_and_underdog(df):
     df['Favorite'] = df.apply(get_favorite, axis=1)
     df['Underdog'] = df.apply(get_underdog, axis=1)
     return df
-
-# compute features for model:
-# Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
-
-def compute_atp_points_diff(df):
-    df = df.copy()
-    df['Points_Diff'] = abs(df['WPts'] - df['LPts'])
-    return df
-
-def compute_delta_Int(df):
-    def assign_interval(points):
-        if points <= 400:
-            return 0
-        elif points <= 800:
-            return 1
-        elif points <= 1200:
-            return 2
-        elif points <= 2000:
-            return 3
-        else:
-            return 4
-    df['FI'] = df['WPts'].apply(assign_interval)
-    df['UI'] = df['LPts'].apply(assign_interval)
-    df['DeltaInt'] = df['FI'] - df['UI']
-    return df
-
-def compute_player_age(atp_players_df, df):
-    df = df.copy()
-    atp_players_df['dob'] = pd.to_datetime(atp_players_df['dob'])
-    atp_players_df['age'] = (pd.to_datetime('today') - atp_players_df['dob']).dt.days
-    atp_players_df = atp_players_df[['player_id', 'age']]
-    df = df.merge(atp_players_df, left_on='winner_id', right_on='player_id', how='left')
-    df = df.rename(columns={'age': 'Winner_age'})
-    df = df.merge(atp_players_df, left_on='loser_id', right_on='player_id', how='left')
-    df = df.rename(columns={'age': 'Loser_age'})
-    return df
