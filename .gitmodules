@@ -1,3 +1,6 @@
 [submodule "atp_data"]
 	path = atp_data
 	url = https://github.com/JeffSackmann/tennis_atp.git
+[submodule "tennis-prediction"]
+	path = tennis-prediction
+	url = https://github.com/VincentAuriau/Tennis-Prediction.git
