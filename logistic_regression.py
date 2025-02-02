@@ -110,11 +110,24 @@ def compute_delta_Int(df):
 
 def compute_player_age(atp_players_df, df):
     df = df.copy()
+    df['Date'] = pd.to_datetime(df['Date'])
     atp_players_df['dob'] = pd.to_datetime(atp_players_df['dob'])
-    atp_players_df['age'] = (pd.to_datetime('today') - atp_players_df['dob']).dt.days
-    atp_players_df = atp_players_df[['player_id', 'age']]
-    df = df.merge(atp_players_df, left_on='winner_id', right_on='player_id', how='left')
-    df = df.rename(columns={'age': 'Winner_age'})
-    df = df.merge(atp_players_df, left_on='loser_id', right_on='player_id', how='left')
-    df = df.rename(columns={'age': 'Loser_age'})
+    
+    df = df.merge(
+        atp_players_df[['player_id', 'dob']], 
+        left_on='winner_id', 
+        right_on='player_id', 
+        how='left'
+    ).rename(columns={'dob': 'Winner_dob'}).drop('player_id', axis=1)
+    
+    df = df.merge(
+        atp_players_df[['player_id', 'dob']], 
+        left_on='loser_id', 
+        right_on='player_id', 
+        how='left'
+    ).rename(columns={'dob': 'Loser_dob'}).drop('player_id', axis=1)
+    
+    df['Winner_age'] = (df['Date'] - df['Winner_dob']).dt.days
+    df['Loser_age'] = (df['Date'] - df['Loser_dob']).dt.days
+    
     return df
