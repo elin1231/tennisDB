@@ -9,6 +9,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
+from sklearn.preprocessing import StandardScaler
 
 def preprocess_data(data):
     numerical_columns = ['WRank', 'LRank', 'WPts', 'LPts', 'B365W', 'B365L']
@@ -84,8 +86,8 @@ def predict_outcomes(model, X_test, y_test):
     return results
 
 # compute features for model:
-# Variables are based on the research paper: https://www.researchgate.net/publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
-
+# Variables are based on the research paper: https://www.researchgate.net/ publication/310774506_Tennis_betting_Can_statistics_beat_bookmakers
+# The features are: DeltaInt, Points_Diff, Winner_age, Loser_age, Info
 def compute_atp_points_diff(df):
     df = df.copy()
     df['Points_Diff'] = abs(df['WPts'] - df['LPts'])
@@ -131,3 +133,100 @@ def compute_player_age(atp_players_df, df):
     df['Loser_age'] = (df['Date'] - df['Loser_dob']).dt.days
     
     return df
+
+def compute_info(df):
+    df = df.copy()
+    df["favorite_odd"] = df.apply(
+        lambda row: row["B365W"] if row["WRank"] < row["LRank"] else row["B365L"],
+        axis=1
+    )
+    df["Info"] = df["favorite_odd"].apply(lambda oF: oF if oF > 2 else 0)
+    return df.drop(columns="favorite_odd")
+
+
+def train_logistic_model(df):
+    X = df[["favorite_age", "Info", "favorite_rank"]]
+    y = df["target"]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    model = LogisticRegression()
+    model.fit(X_train_scaled, y_train)
+    
+    y_pred = model.predict(X_test_scaled)
+    y_proba = model.predict_proba(X_test_scaled)[:, 1]
+    
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+    print(f"AUC-ROC: {roc_auc_score(y_test, y_proba):.2f}")
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+    
+    return model, scaler
+
+def prepare_data(matches_df, players_df):
+    matches_df = matches_df.merge(
+        players_df[["player_id", "dob"]], 
+        left_on="winner_id", 
+        right_on="player_id", 
+        how="left"
+    ).rename(columns={"dob": "Winner_dob"})
+    
+    matches_df = matches_df.merge(
+        players_df[["player_id", "dob"]], 
+        left_on="loser_id", 
+        right_on="player_id", 
+        how="left"
+    ).rename(columns={"dob": "Loser_dob"})
+    
+    matches_df["Date"] = pd.to_datetime(matches_df["Date"])
+    matches_df["Winner_age"] = (matches_df["Date"] - pd.to_datetime(matches_df["Winner_dob"])).dt.days / 365.25
+    matches_df["Loser_age"] = (matches_df["Date"] - pd.to_datetime(matches_df["Loser_dob"])).dt.days / 365.25
+    
+    matches_df["favorite_rank"] = matches_df[["WRank", "LRank"]].min(axis=1)
+    matches_df["favorite_age"] = matches_df.apply(
+        lambda row: row["Winner_age"] if row["WRank"] < row["LRank"] else row["Loser_age"], 
+        axis=1
+    )
+    
+    matches_df["favorite_odd"] = matches_df.apply(
+        lambda row: row["B365W"] if row["WRank"] < row["LRank"] else row["B365L"], 
+        axis=1
+    )
+    matches_df["Info"] = matches_df["favorite_odd"].apply(lambda x: x if x > 2 else 0)
+    
+    matches_df["target"] = matches_df.apply(
+        lambda row: 1 if (row["WRank"] < row["LRank"]) else 0, 
+        axis=1
+    )
+    
+    features = ["favorite_age", "Info", "favorite_rank"]
+    df_clean = matches_df[features + ["target"]].dropna()
+    
+    return df_clean
+
+def train_logistic_model(df):
+    X = df[["favorite_age", "Info", "favorite_rank"]]
+    y = df["target"]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    model = LogisticRegression()
+    model.fit(X_train_scaled, y_train)
+    
+    y_pred = model.predict(X_test_scaled)
+    y_proba = model.predict_proba(X_test_scaled)[:, 1]
+    
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+    print(f"AUC-ROC: {roc_auc_score(y_test, y_proba):.2f}")
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+    
+    return model, scaler
